@@ -53,7 +53,18 @@ CACHE_FNAME = "206_APIsAndDBs_cache.json"
 
 
 # Define your function get_user_tweets here:
-
+def get_user_tweets():
+   if "umsi" in CACHE_DICTION:
+        print ("Using cached data")
+        twitter_results = CACHE_DICTION["umsi"]
+    else:
+        print ('getting data from internet')
+        twitter_results = api.user_timeline('umsi')
+        CACHE_DICTION["umsi"] = twitter_results
+        fw = open(CACHE_FNAME,"w")
+        fw.write(json.dumps(CACHE_DICTION))
+        fw.close() # Close the open file
+    return twitter_results
 
 
 
@@ -61,7 +72,7 @@ CACHE_FNAME = "206_APIsAndDBs_cache.json"
 # Write an invocation to the function for the "umich" user timeline and 
 # save the result in a variable called umich_tweets:
 
-
+umich_tweets = get_user_tweets()
 
 
 ## Task 2 - Creating database and loading data into database

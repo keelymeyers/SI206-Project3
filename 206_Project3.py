@@ -53,18 +53,18 @@ CACHE_FNAME = "206_APIsAndDBs_cache.json"
 
 
 # Define your function get_user_tweets here:
-def get_user_tweets():
-   if "umsi" in CACHE_DICTION:
-        print ("Using cached data")
-        twitter_results = CACHE_DICTION["umsi"]
-    else:
-        print ('getting data from internet')
-        twitter_results = api.user_timeline('umsi')
-        CACHE_DICTION["umsi"] = twitter_results
-        fw = open(CACHE_FNAME,"w")
-        fw.write(json.dumps(CACHE_DICTION))
-        fw.close() # Close the open file
-    return twitter_results
+#def get_user_tweets():
+   #if "umsi" in CACHE_DICTION:
+        #print ("Using cached data")
+        #twitter_results = CACHE_DICTION["umsi"]
+    #else:
+        #print ('getting data from internet')
+        #twitter_results = api.user_timeline('umsi')
+        #CACHE_DICTION["umsi"] = twitter_results
+        #fw = open(CACHE_FNAME,"w")
+        #fw.write(json.dumps(CACHE_DICTION))
+        #fw.close() # Close the open file
+    #return twitter_results
 
 
 
@@ -72,7 +72,7 @@ def get_user_tweets():
 # Write an invocation to the function for the "umich" user timeline and 
 # save the result in a variable called umich_tweets:
 
-umich_tweets = get_user_tweets()
+#umich_tweets = get_user_tweets()
 
 
 ## Task 2 - Creating database and loading data into database
@@ -85,6 +85,14 @@ umich_tweets = get_user_tweets()
 
 conn = sqlite3.connect('206_APIsAndDBs.sqlite')
 cur = conn.cursor()
+
+cur.execute('DROP TABLE IF EXISTS Tweets')
+cur.execute('CREATE TABLE Tweets (tweet_id TEXT, text TEXT, user_posted TEXT, time_posted DATETIME, retweets NUMBER)')
+
+cur.execute('DROP TABLE IF EXISTS Users')
+cur.execute('CREATE TABLE Users (user_id TEXT, screen_name TEXT, num_favs NUMBER, description TEXT)')
+
+conn.commit()
 
 ## You should load into the Tweets table: 
 # Info about all the tweets (at least 20) that you gather from the 

@@ -65,7 +65,7 @@ def get_user_tweets():
         twitter_results = CACHE_DICTION["umsi"]
     else:
         print ('getting data from internet')
-        twitter_results = api.user_timeline('umsi')
+        twitter_results = api.home_timeline()
         CACHE_DICTION["umsi"] = twitter_results
         fw = open(CACHE_FNAME,"w")
         fw.write(json.dumps(CACHE_DICTION))

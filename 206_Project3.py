@@ -50,21 +50,27 @@ api = tweepy.API(auth, parser=tweepy.parsers.JSONParser())
 CACHE_FNAME = "206_APIsAndDBs_cache.json"
 # Put the rest of your caching setup here:
 
-
+try:
+    cache_file = open(CACHE_FNAME,'r')
+    cache_contents = cache_file.read()
+    cache_file.close()
+    CACHE_DICTION = json.loads(cache_contents)
+except:
+    CACHE_DICTION = {}
 
 # Define your function get_user_tweets here:
-#def get_user_tweets():
-   #if "umsi" in CACHE_DICTION:
-        #print ("Using cached data")
-        #twitter_results = CACHE_DICTION["umsi"]
-    #else:
-        #print ('getting data from internet')
-        #twitter_results = api.user_timeline('umsi')
-        #CACHE_DICTION["umsi"] = twitter_results
-        #fw = open(CACHE_FNAME,"w")
-        #fw.write(json.dumps(CACHE_DICTION))
-        #fw.close() # Close the open file
-    #return twitter_results
+def get_user_tweets():
+	if "umsi" in CACHE_DICTION:
+        print ("Using cached data")
+        twitter_results = CACHE_DICTION["umsi"]
+    else:
+        print ('getting data from internet')
+        twitter_results = api.user_timeline('umsi')
+        CACHE_DICTION["umsi"] = twitter_results
+        fw = open(CACHE_FNAME,"w")
+        fw.write(json.dumps(CACHE_DICTION))
+        fw.close() # Close the open file
+    return twitter_results
 
 
 
@@ -87,10 +93,10 @@ conn = sqlite3.connect('206_APIsAndDBs.sqlite')
 cur = conn.cursor()
 
 cur.execute('DROP TABLE IF EXISTS Tweets')
-cur.execute('CREATE TABLE Tweets (tweet_id TEXT, text TEXT, user_posted TEXT, time_posted DATETIME, retweets NUMBER)')
+cur.execute('CREATE TABLE Tweets (tweet_id TEXT PRIMARY KEY, text TEXT, user_posted TEXT, time_posted DATETIME, retweets NUMBER)')
 
 cur.execute('DROP TABLE IF EXISTS Users')
-cur.execute('CREATE TABLE Users (user_id TEXT, screen_name TEXT, num_favs NUMBER, description TEXT)')
+cur.execute('CREATE TABLE Users (user_id TEXT PRIMARY KEY, screen_name TEXT, num_favs NUMBER, description TEXT)')
 
 conn.commit()
 

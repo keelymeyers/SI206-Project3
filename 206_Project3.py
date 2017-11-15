@@ -38,6 +38,8 @@ api = tweepy.API(auth, parser=tweepy.parsers.JSONParser())
 
 ##### END TWEEPY SETUP CODE
 
+
+
 ## Task 1 - Gathering data
 
 ## Define a function called get_user_tweets that gets at least 20 Tweets 
@@ -73,12 +75,13 @@ def get_user_tweets(user):
 	return twitter_results
 
 
-
-
 # Write an invocation to the function for the "umich" user timeline and 
 # save the result in a variable called umich_tweets:
 
 umich_tweets = get_user_tweets("@umich")
+
+print(umich_tweets)
+
 
 
 ## Task 2 - Creating database and loading data into database
@@ -97,6 +100,19 @@ cur.execute('CREATE TABLE Tweets (tweet_id TEXT PRIMARY KEY, text TEXT, user_pos
 
 cur.execute('DROP TABLE IF EXISTS Users')
 cur.execute('CREATE TABLE Users (user_id TEXT PRIMARY KEY, screen_name TEXT, num_favs NUMBER, description TEXT)')
+
+
+for tw in umich_tweets:
+	tup = tw["id"], tw["user"]["screen_name"], tw["created_at"], tw["text"], tw["retweet_count"]
+    cur.execute('INSERT INTO Tweets (tweet_id, author, time_posted, tweet_text, retweets) VALUES (?, ?, ?, ?, ?)', tup)
+
+
+
+
+
+
+
+
 
 conn.commit()
 

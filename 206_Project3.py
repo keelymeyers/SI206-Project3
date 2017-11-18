@@ -62,6 +62,8 @@ except:
     CACHE_DICTION = {}
 
 # Define your function get_user_tweets here:
+
+#This function should accept as input the name of a Twitter user. As an output, it will return a Python object containing data retrieved from Twitter. 
 def get_user_tweets(user):
 	if user in CACHE_DICTION:
 		print ("Using cached data")
@@ -80,8 +82,6 @@ def get_user_tweets(user):
 # save the result in a variable called umich_tweets:
 
 umich_tweets = get_user_tweets("@umich")
-
-print(umich_tweets[0])
 
 
 
@@ -104,12 +104,12 @@ cur.execute('CREATE TABLE Users (user_id TEXT PRIMARY KEY, screen_name TEXT, num
 
 
 for tw in umich_tweets:
-	tup = tw["id"], tw["text"], tw["created_at"], tw["id_str"], tw["text"], tw["retweet_count"]
+	tup = tw["id"], tw["text"], tw["id_str"], tw["created_at"], tw["retweet_count"]
 	cur.execute('INSERT INTO Tweets (tweet_id, text, user_posted, time_posted, retweets) VALUES (?, ?, ?, ?, ?)', tup)
 
 
-	tup2 = tw["id_str"], tw["screen_name"], tw["favourites_count"], tw["description"]
-	cur.execute('INSERT INTO Users (user_id, screen_name, num_favs, description) VALUES (?, ?, ?, ?)', tup2)
+	tup2 = tw["user"]["id"], tw["user"]["screen_name"], tw["user"]["favourites_count"], tw["user"]["description"]
+	cur.execute('INSERT OR IGNORE INTO Users (user_id, screen_name, num_favs, description) VALUES (?, ?, ?, ?)', tup2)
 
 
 	if len(tw["entities"]["user_mentions"]) > 0:
@@ -118,7 +118,10 @@ for tw in umich_tweets:
 			user_tup = (user_results["id"], user_results["screen_name"], user_results["favourites_count"], user_results["description"])
 			cur.execute('INSERT OR IGNORE INTO Users (user_id, screen_name, num_favs, description) VALUES (?, ?, ?, ?)', user_tup)
 
-
+			CACHE_DICTION[user["screen_name"]] = user_results
+			f = open(CACHE_FNAME, "w")
+			f.write(json.dumps(CACHE_DICTION))
+			f.close()
 
 
 #user id, screen name, num favs, description
@@ -152,7 +155,7 @@ conn.commit()
 # Save the list of tuples in a variable called users_info.
 
 cur.execute("SELECT * FROM USERS")
-users_info = CUR.FETCHALL()
+users_info = cur.fetchall()
 
 # Make a query to select all of the user screen names from the database. 
 # Save a resulting list of strings (NOT tuples, the strings inside them!) 
@@ -166,19 +169,22 @@ screen_names = [x[0] for x in cur.fetchall()]
 # Make a query to select all of the tweets (full rows of tweet information)
 # that have been retweeted more than 10 times. Save the result 
 # (a list of tuples, or an empty list) in a variable called retweets.
-retweets = True
+cur.execute("SELECT * FROM Tweets WHERE retweets > 10")
+retweets = cur.fetchall()
 
 
 # Make a query to select all the descriptions (descriptions only) of 
 # the users who have favorited more than 500 tweets. Access all those 
 # strings, and save them in a variable called favorites, 
 # which should ultimately be a list of strings.
-favorites = True
+cur.execute("SELECT description FROM Users WHERE num_favs > 500")
+favorites = [x[0] for x in cur.fetchall()]
 
 
 # Make a query using an INNER JOIN to get a list of tuples with 2 
 # elements in each tuple: the user screenname and the text of the 
 # tweet. Save the resulting list of tuples in a variable called joined_data2.
+
 joined_data = True
 
 # Make a query using an INNER JOIN to get a list of tuples with 2 
@@ -192,6 +198,8 @@ joined_data2 = True
 ### IMPORTANT: MAKE SURE TO CLOSE YOUR DATABASE CONNECTION AT THE END 
 ### OF THE FILE HERE SO YOU DO NOT LOCK YOUR DATABASE (it's fixable, 
 ### but it's a pain). ###
+
+conn.close()
 
 ###### TESTS APPEAR BELOW THIS LINE ######
 ###### Note that the tests are necessary to pass, but not sufficient -- 

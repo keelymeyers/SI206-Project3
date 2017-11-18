@@ -17,6 +17,7 @@ import tweepy
 import twitter_info # same deal as always...
 import json
 import sqlite3
+import re
 
 ## Your name: Keely Meyers
 ## The names of anyone you worked with on this project:
@@ -80,7 +81,7 @@ def get_user_tweets(user):
 
 umich_tweets = get_user_tweets("@umich")
 
-print(umich_tweets)
+print(umich_tweets[0])
 
 
 
@@ -103,15 +104,24 @@ cur.execute('CREATE TABLE Users (user_id TEXT PRIMARY KEY, screen_name TEXT, num
 
 
 for tw in umich_tweets:
-	tup = tw["id"], tw["user"]["screen_name"], tw["created_at"], tw["text"], tw["retweet_count"]
-    cur.execute('INSERT INTO Tweets (tweet_id, author, time_posted, tweet_text, retweets) VALUES (?, ?, ?, ?, ?)', tup)
+	tup = tw["id"], tw["text"], tw["created_at"], tw["id_str"], tw["text"], tw["retweet_count"]
+	cur.execute('INSERT INTO Tweets (tweet_id, text, user_posted, time_posted, retweets) VALUES (?, ?, ?, ?, ?)', tup)
+
+
+	tup2 = tw["id_str"], tw["screen_name"], tw["favourites_count"], tw["description"]
+	cur.execute('INSERT INTO Users (user_id, screen_name, num_favs, description) VALUES (?, ?, ?, ?)', tup2)
+
+
+	if len(tw["entities"]["user_mentions"]) > 0:
+		for user in tw["entities"]["user_mentions"]:
+			user_results = api.get_user(user["screen_name"])
+			user_tup = (user_results["id"], user_results["screen_name"], user_results["favourites_count"], user_results["description"])
+			cur.execute('INSERT OR IGNORE INTO Users (user_id, screen_name, num_favs, description) VALUES (?, ?, ?, ?)', user_tup)
 
 
 
 
-
-
-
+#user id, screen name, num favs, description
 
 
 conn.commit()
@@ -141,13 +151,16 @@ conn.commit()
 # Make a query to select all of the records in the Users database. 
 # Save the list of tuples in a variable called users_info.
 
-users_info = True
+cur.execute("SELECT * FROM USERS")
+users_info = CUR.FETCHALL()
 
 # Make a query to select all of the user screen names from the database. 
 # Save a resulting list of strings (NOT tuples, the strings inside them!) 
 # in the variable screen_names. HINT: a list comprehension will make 
 # this easier to complete! 
-screen_names = True
+
+cur.execute("SELECT screen_name FROM Users")
+screen_names = [x[0] for x in cur.fetchall()]
 
 
 # Make a query to select all of the tweets (full rows of tweet information)

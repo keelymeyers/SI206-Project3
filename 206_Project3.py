@@ -17,7 +17,7 @@ import tweepy
 import twitter_info # same deal as always...
 import json
 import sqlite3
-import re
+
 
 ## Your name: Keely Meyers
 ## The names of anyone you worked with on this project:
@@ -70,7 +70,7 @@ def get_user_tweets(user):
 		twitter_results = CACHE_DICTION[user]
 	else:
 		print ('getting data from internet')
-		twitter_results = api.home_timeline()
+		twitter_results = api.user_timeline(user)
 		CACHE_DICTION[user] = twitter_results
 		fw = open(CACHE_FNAME,"w")
 		fw.write(json.dumps(CACHE_DICTION))
@@ -82,8 +82,6 @@ def get_user_tweets(user):
 # save the result in a variable called umich_tweets:
 
 umich_tweets = get_user_tweets("@umich")
-
-
 
 ## Task 2 - Creating database and loading data into database
 ## You should load into the Users table:
@@ -102,9 +100,8 @@ cur.execute('CREATE TABLE Tweets (tweet_id TEXT PRIMARY KEY, text TEXT, user_pos
 cur.execute('DROP TABLE IF EXISTS Users')
 cur.execute('CREATE TABLE Users (user_id TEXT PRIMARY KEY, screen_name TEXT, num_favs NUMBER, description TEXT)')
 
-
 for tw in umich_tweets:
-	tup = tw["id"], tw["text"], tw["id_str"], tw["created_at"], tw["retweet_count"]
+	tup = tw["id"], tw["text"], tw["user"]["id"], tw["created_at"], tw["retweet_count"]
 	cur.execute('INSERT INTO Tweets (tweet_id, text, user_posted, time_posted, retweets) VALUES (?, ?, ?, ?, ?)', tup)
 
 
@@ -122,9 +119,6 @@ for tw in umich_tweets:
 			f = open(CACHE_FNAME, "w")
 			f.write(json.dumps(CACHE_DICTION))
 			f.close()
-
-
-#user id, screen name, num favs, description
 
 
 conn.commit()
@@ -184,15 +178,18 @@ favorites = [x[0] for x in cur.fetchall()]
 # Make a query using an INNER JOIN to get a list of tuples with 2 
 # elements in each tuple: the user screenname and the text of the 
 # tweet. Save the resulting list of tuples in a variable called joined_data2.
-
-joined_data = True
+cur.execute("SELECT Tweets.text, Users.screen_name FROM Tweets INNER JOIN Users ON Tweets.user_posted = Users.user_id")
+joined_data2 = (cur.fetchall())
+print (joined_data2)
 
 # Make a query using an INNER JOIN to get a list of tuples with 2 
 # elements in each tuple: the user screenname and the text of the 
 # tweet in descending order based on retweets. Save the resulting 
 # list of tuples in a variable called joined_data2.
+cur.execute("SELECT Tweets.text, Users.screen_name FROM Tweets INNER JOIN Users ON Tweets.user_posted = Users.user_id ORDER BY Tweets.retweets DESC")
+joined_data = (cur.fetchall())
 
-joined_data2 = True
+
 
 
 ### IMPORTANT: MAKE SURE TO CLOSE YOUR DATABASE CONNECTION AT THE END 
